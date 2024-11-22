@@ -5,6 +5,7 @@ export interface User {
 }
 
 export interface Contact {
+  etag: any;
   resourceName: string;
   phoneNumbers: Array<{
     value: string;
