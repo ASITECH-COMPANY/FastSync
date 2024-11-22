@@ -95,7 +95,7 @@ export const ContactsManager: React.FC = () => {
         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-3 rounded-lg shadow-lg transition-all"
       >
         <RefreshCw className={`w-5 h-5 ${isUpdating ? 'animate-spin' : ''}`} />
-        Import and Update Contacts
+        Importer et Mettre à jour mes contacts
       </button>
 
       {isUpdating && (
@@ -106,14 +106,14 @@ export const ContactsManager: React.FC = () => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <p className="text-sm text-gray-600 mt-2">Updating contacts... {Math.round(progress)}%</p>
+          <p className="text-sm text-gray-600 mt-2">Mise à jour des contacts... {Math.round(progress)}%</p>
         </div>
       )}
 
       {isComplete && (
         <div className="flex items-center gap-2 text-green-600">
           <CheckCircle className="w-5 h-5" />
-          <span>Your contacts have been successfully updated!</span>
+          <span>Vos contacts ont été mis à jour avec succès!</span>
         </div>
       )}
     </div>
