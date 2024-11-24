@@ -13,53 +13,52 @@ export const ContactsManager: React.FC = () => {
     setIsUpdating(true);
     setProgress(0);
     setIsComplete(false);
-
+  
     try {
-      // Fetch contacts
       const response = await fetch(
-        'https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers',
+        'https://people.googleapis.com/v1/people/me/connections?personFields=phoneNumbers',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-
+  
       const data = await response.json();
       const contacts: Contact[] = data.connections || [];
       const totalContacts = contacts.length;
-
+  
       for (let i = 0; i < contacts.length; i++) {
         const contact = contacts[i];
         const phoneNumbers = contact.phoneNumbers || [];
         let updated = false;
-
-        for (const phone of phoneNumbers) {
-          if (phone.value.startsWith('+229') && phone.value.length === 12) {
-            const newNumber = '+229 01' + phone.value.slice(4);
-            if (phone.value !== newNumber) {
-              // Update contact
-              await fetch(`https://people.googleapis.com/v1/${contact.resourceName}:updateContact`, {
-                method: 'PATCH',
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  etag: contact.resourceName,
-                  phoneNumbers: [{ value: newNumber, metadata: phone.metadata }],
-                }),
-              });
-              updated = true;
-            }
+  
+        const updatedPhoneNumbers = phoneNumbers.map(phone => {
+          const newNumber = processPhoneNumber(phone.value);
+          if (phone.value !== newNumber) {
+            updated = true;
+            return { ...phone, value: newNumber };
           }
-        }
-
+          return phone;
+        });
+  
         if (updated) {
+          await fetch(`https://people.googleapis.com/v1/${contact.resourceName}:updateContact?updatePersonFields=phoneNumbers`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              resourceName: contact.resourceName,
+              etag: contact.etag,
+              phoneNumbers: updatedPhoneNumbers,
+            }),
+          });
           setProgress(((i + 1) / totalContacts) * 100);
         }
       }
-
+  
       setIsComplete(true);
     } catch (error) {
       console.error('Error updating contacts:', error);
@@ -67,7 +66,27 @@ export const ContactsManager: React.FC = () => {
       setIsUpdating(false);
     }
   };
+  
 
+
+  function processPhoneNumber(number: string): string {
+    let cleaned = number.replace(/[\s-]/g, '');
+  
+    if (cleaned.startsWith('+229')) {
+      const nationalNumber = cleaned.substring(4);
+      if (/^\d{8}$/.test(nationalNumber)) {
+        return '+22901' + nationalNumber;
+      }
+      return cleaned;
+    }
+  
+    if (/^\d{8}$/.test(cleaned)) {
+      return '+22901' + cleaned;
+    }
+  
+    return number;
+  }
+  
   return (
     <div className="space-y-6">
       <button
@@ -76,7 +95,7 @@ export const ContactsManager: React.FC = () => {
         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-3 rounded-lg shadow-lg transition-all"
       >
         <RefreshCw className={`w-5 h-5 ${isUpdating ? 'animate-spin' : ''}`} />
-        Import and Update Contacts
+        Importer et Mettre à jour mes contacts
       </button>
 
       {isUpdating && (
@@ -87,14 +106,14 @@ export const ContactsManager: React.FC = () => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <p className="text-sm text-gray-600 mt-2">Updating contacts... {Math.round(progress)}%</p>
+          <p className="text-sm text-gray-600 mt-2">Mise à jour des contacts... {Math.round(progress)}%</p>
         </div>
       )}
 
       {isComplete && (
         <div className="flex items-center gap-2 text-green-600">
           <CheckCircle className="w-5 h-5" />
-          <span>Your contacts have been successfully updated!</span>
+          <span>Vos contacts ont été mis à jour avec succès!</span>
         </div>
       )}
     </div>

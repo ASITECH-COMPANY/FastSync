@@ -6,7 +6,7 @@ import { Header } from './components/Header';
 import { ContactsManager } from './components/ContactsManager';
 import { Smartphone } from 'lucide-react';
 
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // Replace with your actual client ID
+const GOOGLE_CLIENT_ID = '229227546410-s4oeal4pmn9jg0nts0mpgdi8k7nq0mpk.apps.googleusercontent.com'; // Replace with your actual client ID
 
 function App() {
   const user = useAuthStore((state) => state.user);
